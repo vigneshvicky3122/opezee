@@ -1,8 +1,7 @@
-import { app, shell, BrowserWindow, dialog, ipcMain } from 'electron'
+import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-export const applications = [] // Array to store application paths
 
 // ... (other code remains the same)
 
@@ -23,7 +22,6 @@ function createWindow() {
       allowRunningInsecureContent: true
     }
   })
-  mainWindow.webContents.openDevTools()
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
@@ -63,22 +61,6 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
-  dialog
-    .showOpenDialog({
-      title: 'Select Application File',
-      properties: ['openFile'],
-      filters: [{ name: 'Executable Files', extensions: ['exe'] }]
-    })
-    .then((result) => {
-      if (!result.canceled && result.filePaths.length > 0) {
-        const selectedFilePath = result.filePaths[0]
-        // Do something with the selected file path (e.g., add it to the applications list)
-        console.log(selectedFilePath)
-      }
-    })
-    .catch((err) => {
-      console.error(err)
-    })
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -90,27 +72,5 @@ app.on('window-all-closed', () => {
   }
 })
 
-ipcMain.handle('open-file-dialog', async (event, arg) => {
-  const result = await dialog.showOpenDialog({
-    properties: ['openFile'],
-    filters: [{ name: 'Executable Files', extensions: ['exe'] }],
-    defaultPath: path.join(app.getPath('documents'))
-  })
-  return result
-})
-ipcMain.on('add-application', (event, filePath) => {
-  if (!applications.includes(filePath)) {
-    applications.push(filePath)
-    // Save applications to storage or perform necessary operations
-    // For instance, you can use `electron-store` or other storage mechanisms
-  }
-})
-ipcMain.on('remove-application', (event, filePath) => {
-  const index = applications.indexOf(filePath)
-  if (index !== -1) {
-    applications.splice(index, 1)
-    // Update storage or perform necessary operations for removal
-  }
-})
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
